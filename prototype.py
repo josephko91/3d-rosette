@@ -6,13 +6,19 @@ from math import pi
 import trame
 import math
 
-# set geometric parameters
-a = 0.5 # half max length across basal face
-c =  1.0 # half max length across prism face
+# set geoemetric parameters
+a = 0.25 # half max length across basal face
+c =  2.0 # half max length across prism face
 r0 = 1.0 # radius of center sphere
-h0 = 0.25 # penetration depth of bullets
+h0 = 0.50 # penetration depth of bullets
 hp = 0.75 # heights of pyramid of bullets
 n_arms = 6 # number of bullet arms
+
+# set render parameters 
+# pv.global_theme.restore_defaults()
+bg_color = 'black' # background color of render
+obj_color = 'white' # color of object
+op = 0.9 # opacity of object
 
 # create sphere 
 sphere = pv.Sphere(radius=r0, center=(0, 0, 0), direction=(0, 0, 1), 
@@ -21,6 +27,7 @@ sphere = pv.Sphere(radius=r0, center=(0, 0, 0), direction=(0, 0, 1),
 r_temp = hp/2 + c - h0 + r0
 print(r_temp)
 
+# create outer shell to "place" bullets on
 if n_arms == 2: # line
     outer_shell = pv.Line(pointa=(-r_temp, 0.0, 0.0), 
                           pointb=(r_temp, 0.0, 0.0), resolution=1)
@@ -35,7 +42,6 @@ elif n_arms == 8: # cube
 else: 
     pass
 
-# %%
 # create bullet arm
 cyl = pv.Cylinder(center=(0.0, 0.0, c+hp), direction=(0.0, 0.0, -1.0), 
                   radius=2*a, height=2*c, resolution=6, capping=True)
@@ -51,12 +57,12 @@ bullet = cyl.boolean_union(pyr)
 # # pl.add_mesh(pyr, style='wireframe', color='blue')
 # pl.add_mesh(bullet)
 # pl.show()
-# %%
 
 # translate and rotate bullets
 origin = np.array([0, 0, 0])
 pl = pv.Plotter()
-pl.add_mesh(sphere, show_edges=None, color='white', opacity = 0.95)
+pl.background_color = bg_color
+pl.add_mesh(sphere, show_edges=None, color = obj_color, opacity=op)
 for i in range(len(outer_shell.points)):
     pt = outer_shell.points[i]
     # translate
@@ -68,7 +74,7 @@ for i in range(len(outer_shell.points)):
         bullet_final = bullet_translated.rotate_vector((0, pt[2], -pt[1]), -theta, point=bullet_translated.center)
     else:
         bullet_final = bullet_translated.rotate_vector((pt[1], -pt[0], 0), -theta, point=bullet_translated.center)
-    pl.add_mesh(bullet_final, show_edges=None, color='white', opacity=0.95)
+    pl.add_mesh(bullet_final, show_edges=None, color = obj_color, opacity=op)
 pl.show()
 
 # %%
