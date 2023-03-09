@@ -12,7 +12,7 @@ c =  1.5 # half max length across prism face
 r0 = 1.0 # radius of center sphere
 h0 = 0.25 # penetration depth of bullets
 hp = 0.7 # heights of pyramid of bullets
-n_arms = 9 # number of bullet arms
+n_arms = 6 # number of bullet arms
 
 # set render parameters 
 # pv.global_theme.restore_defaults()
@@ -28,7 +28,8 @@ r_outer = hp/2 + c - h0 + r0
 outer_sphere = pv.Sphere(radius=r_outer, center=(0, 0, 0), direction=(0, 0, 1), 
                    theta_resolution=30, phi_resolution=30, start_theta=0, 
                    end_theta=360, start_phi=0, end_phi=180)
-
+print(type(outer_sphere))
+# %%
 # create outer shell to "place" bullets on
 if n_arms == 2: # line
     outer_shell = pv.Line(pointa=(-r_outer, 0.0, 0.0), 

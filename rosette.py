@@ -1,3 +1,4 @@
+# %%
 import pyvista as pv
 import numpy as np
 from math import pi
@@ -5,7 +6,9 @@ import trame
 import math
 
 class Rosette:
-    """Class representing bullet rosette ice crystals"""
+    """
+    Class representing bullet rosette ice crystals
+    """
     def __init__(self, a, c, r0, h0, hp, n_arms):
         # geoemetric parameters
         self.a = a # half max length across basal face
@@ -74,7 +77,72 @@ class Rosette:
             else:
                 bullet_final = bullet_translated.rotate_vector((pt[1], -pt[0], 0), -theta, point=bullet_translated.center)
             # perform union (to create single mesh)
-            rosette.boolean_union(bullet_final)
+            rosette = rosette.boolean_union(bullet_final)
         
         self.model = rosette # final 3d mesh model 
 
+    def copy(self):
+        """
+        create a new instance
+        with the same data as this instance
+        """
+        return Rosette(self.a, self.c, self.r0, self.h0, self.hp, self.n_arms)
+
+    def plot(self, bg_color='black', obj_color='white', op=0.9):
+        """
+        Interactive PyVista visualization
+        """
+        pl = pv.Plotter(off_screen=True)
+        pl.background_color = bg_color
+        pl.add_mesh(self.model, show_edges=None, color = obj_color, opacity=op)
+        return pl
+
+    def random_rotate(self):
+        """
+        Rotate rosette in a random orientation
+        """
+        rotated = self.copy()
+        deg_x = np.random.randint(1, 360)
+        deg_y = np.random.randint(1, 360)
+        deg_z = np.random.randint(1, 360)
+        rotated_model = self.model.rotate_x(deg_x, inplace=False)
+        rotated_model.rotate_y(deg_y, inplace=True)
+        rotated_model.rotate_z(deg_z, inplace=True)
+        rotated.model = rotated_model
+        return rotated
+
+    def render(self, cam): 
+        """
+        Render orthographic (parallel) projection
+        """
+
+# %%
+# Test instantiation
+# set geoemetric parameters
+a = 0.3 # half max length across basal face
+c =  1.5 # half max length across prism face
+r0 = 1.0 # radius of center sphere
+h0 = 0.25 # penetration depth of bullets
+hp = 0.7 # heights of pyramid of bullets
+n_arms = 6 # number of bullet arms
+
+# set render parameters 
+# pv.global_theme.restore_defaults()
+bg_color = 'black' # background color of render
+obj_color = 'white' # color of object
+op = 0.9 # opacity of object
+
+# plot 
+test = Rosette(a, c, r0, h0, hp, n_arms)
+pl = test.plot()
+pl.show(screenshot='test_render.png')
+# pl.save_graphic('test_render.svg')
+
+# # rotate original then plot
+test_rotated = test.random_rotate()
+pl_rotated = test_rotated.plot()
+pl_rotated.show(screenshot='test_rotated_render.png')
+
+#%%
+type(test_rotated.plot())
+# %%

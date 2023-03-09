@@ -127,3 +127,10 @@ dmypy.json
 
 # Pyre type checker
 .pyre/
+
+# image files
+.svg
+.png
+
+# mac specific
+.DS_Store
