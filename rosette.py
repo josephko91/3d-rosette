@@ -92,7 +92,7 @@ class Rosette:
         """
         Interactive PyVista visualization
         """
-        pl = pv.Plotter(off_screen=True)
+        pl = pv.Plotter(off_screen=True, window_size=[720,720])
         pl.background_color = bg_color
         pl.add_mesh(self.model, show_edges=None, color = obj_color, opacity=op)
         return pl
@@ -115,6 +115,7 @@ class Rosette:
         """
         Render orthographic (parallel) projection
         """
+        pass
 
 # %%
 # Test instantiation
@@ -135,14 +136,34 @@ op = 0.9 # opacity of object
 # plot 
 test = Rosette(a, c, r0, h0, hp, n_arms)
 pl = test.plot()
-pl.show(screenshot='test_render.png')
+pl.show(screenshot='test_render.png', interactive=False, jupyter_backend='none')
 # pl.save_graphic('test_render.svg')
 
-# # rotate original then plot
-test_rotated = test.random_rotate()
-pl_rotated = test_rotated.plot()
-pl_rotated.show(screenshot='test_rotated_render.png')
+# # # rotate original then plot
+# test_rotated = test.random_rotate()
+# pl_rotated = test_rotated.plot()
+# pl_rotated.show(screenshot='test_rotated_render.png')
 
 #%%
-type(test_rotated.plot())
+# Create test subsample of particles
+r0 = 1
+hp = 0.7 # constant for now
+h0 = 0.3 # constant for now
+a_list = np.arange(0.1, 0.5, 0.1)
+c_list = np.arange(0.5, 2.5, 0.5)
+n_arms_list = np.arange(1, 10, 1)
+
+# folder to save images
+save_path = '/Users/josephko/research/ice_renders/sample_rosettes'
+
+for a in a_list:
+    for c in c_list:
+        for n_arms in n_arms_list:
+            ros = Rosette(a, c, r0, h0, hp, n_arms)
+            ros_rotated = ros.random_rotate()
+            pl = ros_rotated.plot()
+            file_name = f'ros_n{n_arms}_a{a}_c{c}.png'
+            file_path = save_path + '/' + file_name
+            pl.show(screenshot=file_path, interactive=False, jupyter_backend='none')
+
 # %%
