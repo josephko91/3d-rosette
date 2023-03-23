@@ -110,6 +110,11 @@ class Rosette:
         rotated_model.rotate_z(deg_z, inplace=True)
         rotated.model = rotated_model
         return rotated
+    
+    def randomize(self, randomize_length=True, randomize_location=True):
+        """
+        Randomly perturb the length and/or location of bullet arms.
+        """
 
     def render(self, cam): 
         """
