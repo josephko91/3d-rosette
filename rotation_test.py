@@ -69,3 +69,108 @@ cyl_rot_z = cyl_rot_y.rotate_z(angle_z, point=cyl_tran.center)
 pl.add_mesh(cyl_rot_z, style='wireframe', color='orange', line_width = 3)
 pl.show()
 # %%
+# Test random perturbation of bullets
+# 3/10/2023
+
+# create rosette with one bullet
+
+# Import packages
+import pyvista as pv
+import numpy as np
+from math import pi
+import trame
+import math
+
+# set geoemetric parameters
+a = 0.3 # half max length across basal face
+c =  1.5 # half max length across prism face
+r0 = 1.0 # radius of center sphere
+h0 = 0.25 # penetration depth of bullets
+hp = 0.7 # heights of pyramid of bullets
+n_arms = 1 # number of bullet arms
+
+# set render parameters 
+# pv.global_theme.restore_defaults()
+bg_color = 'black' # background color of render
+obj_color = 'white' # color of object
+op = 0.9 # opacity of object
+
+# create sphere 
+sphere = pv.Sphere(radius=r0, center=(0, 0, 0), direction=(0, 0, 1), 
+                   theta_resolution=30, phi_resolution=30, start_theta=0, 
+                   end_theta=360, start_phi=0, end_phi=180)
+r_outer = hp/2 + c - h0 + r0
+outer_sphere = pv.Sphere(radius=r_outer, center=(0, 0, 0), direction=(0, 0, 1), 
+                   theta_resolution=30, phi_resolution=30, start_theta=0, 
+                   end_theta=360, start_phi=0, end_phi=180)
+print(type(outer_sphere))
+
+# create outer shell to "place" bullets on
+# Modified fibbonaci lattice 
+# Source: http://extremelearning.com.au/how-to-evenly-distribute-points-on-a-sphere-more-effectively-than-the-canonical-fibonacci-lattice/
+epsilon = 0.33
+goldenRatio = (1 + 5**0.5)/2
+i = np.arange(0, n_arms) 
+theta = 2 *pi * i / goldenRatio
+phi = np.arccos(1 - 2*(i+epsilon)/(n_arms-1+2*epsilon))
+x, y, z = np.cos(theta) * np.sin(phi), np.sin(theta) * np.sin(phi), np.cos(phi)
+outer_coords = r_outer*(np.column_stack((x, y, z)))
+
+# create bullet arm
+cyl = pv.Cylinder(center=(0.0, 0.0, c+hp), direction=(0.0, 0.0, -1.0), 
+                  radius=2*a, height=2*c, resolution=6, capping=True)
+pyr = pv.Cone(center=(0.0, 0.0, hp/2), direction=(0.0, 0.0, -1.0), 
+              height=hp, radius=2*a, capping=True, angle=None, resolution=6)
+cyl = cyl.triangulate()
+pyr = pyr.triangulate()
+bullet = cyl.boolean_union(pyr)
+
+# copy, translate, and rotate bullets
+origin = np.array([0, 0, 0])
+pl = pv.Plotter()
+pl.background_color = bg_color
+pl.add_mesh(sphere, show_edges=None, color = obj_color, opacity=op)
+# for i in range(len(outer_shell.points)):
+for i in range(len(outer_coords)):
+    # pt = outer_shell.points[i]
+    pt = outer_coords[i]
+    print(pt)
+    # translate
+    translate_vector = pt - bullet.center
+    bullet_translated = bullet.translate(translate_vector, inplace=False)
+    # rotate 
+    theta = math.degrees(math.acos(pt[2]/r_outer))
+    if (pt[0]==0 and pt[1]==0):
+        bullet_final = bullet_translated.rotate_vector((0, pt[2], -pt[1]), -theta, point=bullet_translated.center)
+    else:
+        bullet_final = bullet_translated.rotate_vector((pt[1], -pt[0], 0), -theta, point=bullet_translated.center)
+    pl.add_mesh(bullet_final, show_edges=None, color = obj_color, opacity=op)
+pl.show()
+
+# %%
+# use rotations about axes
+theta_x = np.random.randint(0, 360)
+theta_y = np.random.randint(0, 360)
+theta_z =np.random.randint(0, 360)
+
+# rotate about x-axis
+bullet_rotate_x = bullet_final.rotate_x(theta_x, inplace=False)
+pl.add_mesh(bullet_rotate_x, show_edges=None, color = 'blue', opacity=op)
+
+# rotate about y-axis
+bullet_rotate_y = bullet_rotate_x.rotate_y(theta_y, inplace=False)
+pl.add_mesh(bullet_rotate_y, show_edges=None, color = 'red', opacity=op)
+
+# rotate about z-axis
+bullet_rotate_z = bullet_rotate_y.rotate_z(theta_z, inplace=False)
+pl.add_mesh(bullet_rotate_z, show_edges=None, color = 'green', opacity=op)
+
+# for i in range(6):
+#     if i > 0:
+#         rot = bullet_rotate_z.rotate_x(60*i, inplace=False)
+#         pl.add_mesh(rot, color='green')
+
+# pl.show()
+
+
+# %%

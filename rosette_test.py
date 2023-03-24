@@ -1,9 +1,9 @@
+# %%
 import pyvista as pv
 import numpy as np
 from math import pi
 import trame
 import math
-import helper
 
 class Rosette:
     """
@@ -67,7 +67,7 @@ class Rosette:
         for i in range(len(outer_coords)):
             # pt = outer_shell.points[i]
             pt = outer_coords[i]
-            # print(pt)
+            print(pt)
             # translate
             translate_vector = pt - bullet.center
             bullet_translated = bullet.translate(translate_vector, inplace=False)
@@ -125,8 +125,6 @@ class Rosette:
     def random_rotate(self):
         """
         Rotate rosette in a random orientation
-        TODO:
-        - fix bug related to the reliance on model attribute
         """
         rotated = self.copy()
         deg_x = np.random.randint(1, 360)
@@ -151,11 +149,10 @@ class Rosette:
         if scaling == False:
             pass
         else:
+            sf_basal = np.random.uniform(scaling[0], scaling[1]) # basal scaling factor
+            sf_prism = np.random.uniform(scaling[2], scaling[3]) # prism scaling factor
             r_outer = rosette.hp/2 + rosette.c - rosette.h0 + rosette.r0
-            bullet_length = 2*rosette.c + rosette.hp
             for i in range(rosette.n_arms):
-                sf_basal = np.random.uniform(scaling[0], scaling[1]) # basal scaling factor
-                sf_prism = np.random.uniform(scaling[2], scaling[3]) # prism scaling factor
                 bullet = rosette.bullets[i]
                 pt = bullet['anchor_point']
                 theta = math.degrees(math.acos(pt[2]/r_outer))
@@ -170,11 +167,6 @@ class Rosette:
                                   [0, 0, sf_prism, 0],
                                   [0, 0, 0, 1]])
                 bullet['mesh'].transform(t_mat, inplace=True)
-                # translate (up or down) to compensate for change in size
-                # delta_z = (bullet_length*(1-sf_prism))/2
-                delta_z = -(sf_prism-1)*(rosette.r0-rosette.h0)
-                bullet['mesh'].translate((0,0,delta_z), inplace=True)
-
                 # rotate back to place
                 if (pt[0]==0 and pt[1]==0):
                     bullet['mesh'].rotate_vector((0, pt[2], -pt[1]), -theta, point=[0,0,0], inplace=True)
@@ -185,18 +177,7 @@ class Rosette:
         if location==False:
             pass
         else:
-            cone_angle_deg = location
-            for i in range(rosette.n_arms):
-                bullet = rosette.bullets[i]
-                pt = np.array(bullet['anchor_point'])
-                new_pt = helper.random_spherical_cap(cone_angle_deg, pt, 1)
-                new_pt = new_pt[0,:]
-                # print('pt: ', pt)
-                # print('new_pt: ', new_pt)
-                rot_axis = np.cross(pt, new_pt) # rotation axis
-                pt_norm = helper.norm_rows(pt)
-                theta = math.degrees(np.arccos(np.dot(pt_norm, new_pt))) # rotation angle in degrees
-                bullet['mesh'].rotate_vector(rot_axis, theta, point=[0,0,0], inplace=True)
+            pass
 
         return rosette
 
@@ -205,3 +186,78 @@ class Rosette:
         Render orthographic (parallel) projection
         """
         pass
+
+# %%
+# Test instantiation
+# set geoemetric parameters
+a = 0.3 # half max length across basal face
+c =  1.5 # half max length across prism face
+r0 = 1.0 # radius of center sphere
+h0 = 0.25 # penetration depth of bullets
+hp = 0.7 # heights of pyramid of bullets
+n_arms = 6 # number of bullet arms
+
+# set render parameters 
+# pv.global_theme.restore_defaults()
+bg_color = 'black' # background color of render
+obj_color = 'white' # color of object
+op = 0.9 # opacity of object
+
+# plot 
+test = Rosette(a, c, r0, h0, hp, n_arms)
+pl = test.plot()
+pl.show()
+# pl.show(screenshot='test_render.png', interactive=False, jupyter_backend='none')
+# pl.save_graphic('test_render.svg')
+
+# # # rotate original then plot
+# test_rotated = test.random_rotate()
+# pl_rotated = test_rotated.plot()
+# pl_rotated.show(screenshot='test_rotated_render.png')
+
+#%%
+# 3/23/23
+# Testing for randomizing bullets 
+# print(test.__dir__())
+# for key in test.bullets:
+#     bullet = test.bullets[key]['mesh']
+#     bullet.plot(jupyter_backend='static')
+
+test_bullet = test.bullets[5]
+print(test_bullet['anchor_point'])
+pt = test_bullet['anchor_point']
+r_outer = hp/2 + c - h0 + r0
+theta = math.degrees(math.acos(pt[2]/r_outer))
+if (pt[0]==0 and pt[1]==0):
+    test_bullet_rotated = test_bullet['mesh'].rotate_vector((0, pt[2], -pt[1]), theta, point=[0,0,0])
+else:
+    test_bullet_rotated = test_bullet['mesh'].rotate_vector((pt[1], -pt[0], 0), theta, point=[0,0,0])
+pl2 = pv.Plotter()
+pl2.add_mesh(test_bullet['mesh'], show_edges=None, color = obj_color, opacity=op)
+pl2.add_mesh(test_bullet_rotated, style='wireframe', color='yellow', line_width=5)
+pl2.show()
+
+
+#%%
+# Create test subsample of particles
+r0 = 1
+hp = 0.7 # constant for now
+h0 = 0.3 # constant for now
+a_list = np.arange(0.1, 0.5, 0.1)
+c_list = np.arange(0.5, 2.5, 0.5)
+n_arms_list = np.arange(1, 10, 1)
+
+# folder to save images
+save_path = '/Users/josephko/research/ice_renders/sample_rosettes'
+
+for a in a_list:
+    for c in c_list:
+        for n_arms in n_arms_list:
+            ros = Rosette(a, c, r0, h0, hp, n_arms)
+            ros_rotated = ros.random_rotate()
+            pl = ros_rotated.plot()
+            file_name = f'ros_n{n_arms}_a{a}_c{c}.png'
+            file_path = save_path + '/' + file_name
+            pl.show(screenshot=file_path, interactive=False, jupyter_backend='none')
+
+# %%

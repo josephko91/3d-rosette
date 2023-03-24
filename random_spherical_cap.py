@@ -1,10 +1,12 @@
 #%%
-# Function to return randomly sampled points on a spherical cap of a 2-sphere (i.e. 3-d sphere)
-# Author: Joseph Ko
-# Created: 3/16/23
-# Sources: 
-# https://stackoverflow.com/questions/38997302/create-random-unit-vector-inside-a-defined-conical-region/39003745#39003745
-# https://math.stackexchange.com/questions/56784/generate-a-random-direction-within-a-cone/205589#205589
+"""
+Function to return randomly sampled points on a spherical cap of a 2-sphere (i.e. 3-d sphere)
+Author: Joseph Ko
+Created: 3/16/23
+Sources: 
+https://stackoverflow.com/questions/38997302/create-random-unit-vector-inside-a-defined-conical-region/39003745#39003745
+https://math.stackexchange.com/questions/56784/generate-a-random-direction-within-a-cone/205589#205589
+"""
 import pyvista as pv
 import numpy as np
 
