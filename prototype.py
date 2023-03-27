@@ -73,6 +73,7 @@ pl = pv.Plotter()
 pl.background_color = bg_color
 pl.add_mesh(sphere, show_edges=None, color = obj_color, opacity=op)
 # for i in range(len(outer_shell.points)):
+rosette = sphere
 for i in range(len(outer_coords)):
     # pt = outer_shell.points[i]
     pt = outer_coords[i]
@@ -87,5 +88,11 @@ for i in range(len(outer_coords)):
     else:
         bullet_final = bullet_translated.rotate_vector((pt[1], -pt[0], 0), -theta, point=bullet_translated.center)
     pl.add_mesh(bullet_final, show_edges=None, color = obj_color, opacity=op)
+
+    # perform union (to create single mesh)
+    rosette = rosette.boolean_union(bullet_final)
+
 pl.show()
+# %%
+rosette.volume
 # %%
