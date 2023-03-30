@@ -22,7 +22,7 @@ class Rosette:
         sphere = pv.Sphere(radius=r0, center=(0, 0, 0), direction=(0, 0, 1), 
                         theta_resolution=30, phi_resolution=30, start_theta=0, 
                         end_theta=360, start_phi=0, end_phi=180)
-        self.sphere = sphere
+        self.sphere = sphere.triangulate()
 
         # create outer shell to "place" bullets on
         r_outer = hp/2 + c - h0 + r0
@@ -60,7 +60,7 @@ class Rosette:
                     height=hp, radius=2*a, capping=True, angle=None, resolution=6)
         cyl = cyl.triangulate()
         pyr = pyr.triangulate()
-        bullet = cyl.boolean_union(pyr)
+        bullet = cyl.boolean_union(pyr).triangulate()
 
         # copy, translate, and rotate bullets
         self.bullets = {} # save bullets in nested dictionary
@@ -80,7 +80,7 @@ class Rosette:
             
             # add bullet attributes and mesh to dictionary
             bullet_entry = {}
-            bullet_entry['mesh'] = bullet_final
+            bullet_entry['mesh'] = bullet_final.triangulate()
             bullet_entry['xy_scale_factor'] = 1.0
             bullet_entry['z_scale_factor'] = 1.0
             bullet_entry['anchor_point'] = pt
@@ -94,7 +94,7 @@ class Rosette:
         for i in range(self.n_arms):
             bullet = self.bullets[i]
             bullet_mesh = bullet['mesh']
-            rosette = rosette.boolean_union(bullet_mesh)
+            rosette = rosette.boolean_union(bullet_mesh).triangulate()
         
         self.model = rosette # final 3d mesh model 
 
