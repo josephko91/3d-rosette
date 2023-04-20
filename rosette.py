@@ -4,6 +4,7 @@ from math import pi
 import trame
 import math
 import helper
+from copy import deepcopy
 
 class Rosette:
     """
@@ -93,7 +94,7 @@ class Rosette:
         rosette = self.sphere
         for i in range(self.n_arms):
             bullet = self.bullets[i]
-            bullet_mesh = bullet['mesh']
+            bullet_mesh = bullet['mesh'].triangulate()
             rosette = rosette.boolean_union(bullet_mesh).triangulate()
         
         self.model = rosette # final 3d mesh model 
@@ -104,13 +105,15 @@ class Rosette:
         create a new instance
         with the same data as this instance
         """
-        return Rosette(self.a, self.c, self.r0, self.h0, self.hp, self.n_arms)
+        # ros_copy = Rosette(self.a, self.c, self.r0, self.h0, self.hp, self.n_arms)
+        ros_copy = deepcopy(self)
+        return ros_copy
 
-    def plot(self, bg_color='black', obj_color='white', op=0.9):
+    def plot(self, bg_color='black', obj_color='white', op=0.9, res=720):
         """
         Interactive PyVista visualization
         """
-        pl = pv.Plotter(off_screen=True, window_size=[720,720])
+        pl = pv.Plotter(off_screen=True, window_size=[res, res])
         pl.background_color = bg_color
 
         if hasattr(self, 'model'):
@@ -129,6 +132,7 @@ class Rosette:
         - fix bug related to the reliance on model attribute
         """
         rotated = self.copy()
+        # rotated = self
         deg_x = np.random.randint(1, 360)
         deg_y = np.random.randint(1, 360)
         deg_z = np.random.randint(1, 360)
@@ -142,6 +146,7 @@ class Rosette:
         """
         Randomly perturb the scaling and location of bullets
         """
+        # np.random.seed(0) # TEMPORARY
         if inplace:
             rosette = self
         else:
